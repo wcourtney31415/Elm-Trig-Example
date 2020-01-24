@@ -18,42 +18,71 @@ type Msg
 
 
 type alias Model =
-    { myNumber : Int
+    { myNumber : ( Float, String )
     }
 
 
 getLastChar str =
-    str.reverse.slice 0 1
+    String.slice 0 1 (String.reverse str)
 
 
-addZeroAfterDecimal str =
-    if getLastChar str == "." then
-        str ++ "0"
+removeLastChar str =
+    String.slice 0 (String.length str - 1) str
 
-    else
-        str
+
+
+{-
+
+
+
+
+   withoutDot str =
+       if getLastChar str == "." then
+           str
+
+       else
+           str
+
+   }
+-}
 
 
 init =
-    { myNumber = 0 }
+    { myNumber = ( 0, "" ) }
+
+
+
+--Special cases "", ending with period,
 
 
 update msg model =
     case msg of
         TextboxChanged str ->
-            case String.toFloat str of
-                Nothing ->
-                    model
+            let
+                ifNumber : String -> Model -> Model
+                ifNumber aNumber thisModel =
+                    case String.toFloat aNumber of
+                        Nothing ->
+                            thisModel
 
-                Just val ->
-                    { model | myNumber = val }
+                        Just val ->
+                            { thisModel | myNumber = ( val, str ) }
+            in
+            if str == "" then
+                { model | myNumber = ( 0, "" ) }
+
+            else if getLastChar str == "." then
+                ifNumber (removeLastChar str) model
+
+            else
+                ifNumber str model
 
 
 view model =
     Element.layout []
         (Input.text []
-            { text = String.fromFloat model.myNumber
-            , label = Input.labelAbove [] (text "Username")
+            { text = Tuple.second model.myNumber
+            , label = Input.labelAbove [] (text "Side A")
             , placeholder = Just (Input.placeholder [] (text "Side A"))
             , onChange = \new -> TextboxChanged new
             }
