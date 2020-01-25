@@ -14,50 +14,31 @@ main =
 
 
 type Msg
-    = TextboxChanged String
+    = NumTxtBoxChanged String
 
 
 type alias Model =
-    { myNumber : ( Float, String )
+    { numTxtBoxValue : ( Float, String )
     }
 
 
+getLastChar : String -> String
 getLastChar str =
     String.slice 0 1 (String.reverse str)
 
 
+removeLastChar : String -> String
 removeLastChar str =
     String.slice 0 (String.length str - 1) str
 
 
-
-{-
-
-
-
-
-   withoutDot str =
-       if getLastChar str == "." then
-           str
-
-       else
-           str
-
-   }
--}
-
-
 init =
-    { myNumber = ( 0, "" ) }
-
-
-
---Special cases "", ending with period,
+    { numTxtBoxValue = ( 0, "" ) }
 
 
 update msg model =
     case msg of
-        TextboxChanged str ->
+        NumTxtBoxChanged str ->
             let
                 ifNumber : String -> Model -> Model
                 ifNumber aNumber thisModel =
@@ -66,10 +47,10 @@ update msg model =
                             thisModel
 
                         Just val ->
-                            { thisModel | myNumber = ( val, str ) }
+                            { thisModel | numTxtBoxValue = ( val, str ) }
             in
             if str == "" then
-                { model | myNumber = ( 0, "" ) }
+                { model | numTxtBoxValue = ( 0, "" ) }
 
             else if getLastChar str == "." then
                 ifNumber (removeLastChar str) model
@@ -80,10 +61,13 @@ update msg model =
 
 view model =
     Element.layout []
-        (Input.text []
-            { text = Tuple.second model.myNumber
-            , label = Input.labelAbove [] (text "Side A")
-            , placeholder = Just (Input.placeholder [] (text "Side A"))
-            , onChange = \new -> TextboxChanged new
-            }
+        (Element.column []
+            [ Input.text []
+                { text = Tuple.second model.numTxtBoxValue
+                , label = Input.labelAbove [] (text "Side A")
+                , placeholder = Just (Input.placeholder [] (text "Side A"))
+                , onChange = \new -> NumTxtBoxChanged new
+                }
+            , Element.el [] (text (String.fromFloat (Tuple.first model.numTxtBoxValue + 1)))
+            ]
         )
