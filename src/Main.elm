@@ -2,6 +2,7 @@ module Main exposing (..)
 
 import Browser
 import Element exposing (..)
+import Element.Background as Background
 import Element.Input as Input
 
 
@@ -39,35 +40,65 @@ init =
 update msg model =
     case msg of
         NumTxtBoxChanged str ->
-            let
-                ifNumber : String -> Model -> Model
-                ifNumber aNumber thisModel =
-                    case String.toFloat aNumber of
-                        Nothing ->
-                            thisModel
+            processNumTextboxChange model str
 
-                        Just val ->
-                            { thisModel | numTxtBoxValue = ( val, str ) }
-            in
-            if str == "" then
-                { model | numTxtBoxValue = ( 0, "" ) }
 
-            else if getLastChar str == "." then
-                ifNumber (removeLastChar str) model
+processNumTextboxChange model str =
+    let
+        ifNumber : String -> Model -> Model
+        ifNumber aNumber thisModel =
+            case String.toFloat aNumber of
+                Nothing ->
+                    thisModel
 
-            else
-                ifNumber str model
+                Just val ->
+                    { thisModel | numTxtBoxValue = ( val, str ) }
+    in
+    if str == "" then
+        { model | numTxtBoxValue = ( 0, "" ) }
+
+    else if getLastChar str == "." then
+        ifNumber (removeLastChar str) model
+
+    else
+        ifNumber str model
 
 
 view model =
-    Element.layout []
-        (Element.column []
-            [ Input.text []
-                { text = Tuple.second model.numTxtBoxValue
-                , label = Input.labelAbove [] (text "Side A")
-                , placeholder = Just (Input.placeholder [] (text "Side A"))
-                , onChange = \new -> NumTxtBoxChanged new
-                }
-            , Element.el [] (text (String.fromFloat (Tuple.first model.numTxtBoxValue + 1)))
+    Element.layout [ centerX, width fill, padding 40 ]
+        (Element.column [ centerX, width fill ]
+            [ inputRow model
             ]
         )
+
+
+inputRow model =
+    Element.row [ width fill, spacing 20, centerX ]
+        [ sideColumn model
+        , angleColumn model
+        ]
+
+
+sideColumn model =
+    Element.column [ width fill ]
+        [ numTextBox model "Side A" NumTxtBoxChanged
+        , numTextBox model "Side B" NumTxtBoxChanged
+        , numTextBox model "Side C" NumTxtBoxChanged
+        ]
+
+
+angleColumn model =
+    Element.column [ width fill ]
+        [ numTextBox model "Angle A" NumTxtBoxChanged
+        , numTextBox model "Angle B" NumTxtBoxChanged
+        , numTextBox model "Angle C" NumTxtBoxChanged
+        ]
+
+
+numTextBox model label msg =
+    Input.text []
+        { text = Tuple.second model.numTxtBoxValue
+        , label = Input.labelAbove [] (text label)
+        , placeholder = Just (Input.placeholder [] (text label))
+        , onChange = \new -> msg new
+        }
