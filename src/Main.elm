@@ -3,6 +3,7 @@ module Main exposing (..)
 import Browser
 import Element exposing (..)
 import Element.Background as Background
+import Element.Font as Font
 import Element.Input as Input
 
 
@@ -12,6 +13,10 @@ main =
         , view = view
         , update = update
         }
+
+
+type alias NumInputContent =
+    ( Float, String )
 
 
 type Msg
@@ -24,12 +29,12 @@ type Msg
 
 
 type alias Model =
-    { sideA : ( Float, String )
-    , sideB : ( Float, String )
-    , sideC : ( Float, String )
-    , angleA : ( Float, String )
-    , angleB : ( Float, String )
-    , angleC : ( Float, String )
+    { sideA : NumInputContent
+    , sideB : NumInputContent
+    , sideC : NumInputContent
+    , angleA : NumInputContent
+    , angleB : NumInputContent
+    , angleC : NumInputContent
     }
 
 
@@ -49,56 +54,105 @@ init =
     , sideC = ( 0, "" )
     , angleA = ( 0, "" )
     , angleB = ( 0, "" )
-    , angleC = ( 0, "" )
+    , angleC = ( 90, "90" )
     }
+
+
+createNumInputContent : String -> Maybe NumInputContent
+createNumInputContent str =
+    if str == "" then
+        Just ( 0.0, "" )
+
+    else if getLastChar str == "." then
+        case String.toFloat (removeLastChar str) of
+            Nothing ->
+                Nothing
+
+            Just val ->
+                Just ( val, str )
+
+    else
+        case String.toFloat str of
+            Nothing ->
+                Nothing
+
+            Just val ->
+                Just ( val, str )
 
 
 update msg model =
     case msg of
         SideAChanged str ->
-            processNumTextboxChange model str
+            case createNumInputContent str of
+                Nothing ->
+                    model
+
+                Just inputContent ->
+                    { model | sideA = inputContent }
 
         SideBChanged str ->
-            processNumTextboxChange model str
+            case createNumInputContent str of
+                Nothing ->
+                    model
+
+                Just inputContent ->
+                    { model | sideB = inputContent }
 
         SideCChanged str ->
-            processNumTextboxChange model str
+            case createNumInputContent str of
+                Nothing ->
+                    model
+
+                Just inputContent ->
+                    { model | sideC = inputContent }
 
         AngleAChanged str ->
-            processNumTextboxChange model str
+            case createNumInputContent str of
+                Nothing ->
+                    model
+
+                Just inputContent ->
+                    { model | angleA = inputContent }
 
         AngleBChanged str ->
-            processNumTextboxChange model str
+            case createNumInputContent str of
+                Nothing ->
+                    model
+
+                Just inputContent ->
+                    { model | angleB = inputContent }
 
         AngleCChanged str ->
-            processNumTextboxChange model str
+            model
 
 
-processNumTextboxChange model str =
-    let
-        ifNumber : String -> Model -> Model
-        ifNumber aNumber thisModel =
-            case String.toFloat aNumber of
-                Nothing ->
-                    thisModel
-
-                Just val ->
-                    { thisModel | sideA = ( val, str ) }
-    in
+processpositivefloatTextBoxChange model str =
     if str == "" then
         { model | sideA = ( 0, "" ) }
 
     else if getLastChar str == "." then
-        ifNumber (removeLastChar str) model
+        case String.toFloat (removeLastChar str) of
+            Nothing ->
+                model
+
+            Just val ->
+                { model | sideA = ( val, str ) }
 
     else
-        ifNumber str model
+        case String.toFloat str of
+            Nothing ->
+                model
+
+            Just val ->
+                { model | sideA = ( val, str ) }
 
 
 view model =
     Element.layout [ centerX, width fill, padding 40 ]
         (Element.column [ centerX, width fill ]
-            [ inputRow model
+            [ title
+            , triangle
+            , inputRow model
             ]
         )
 
@@ -112,30 +166,50 @@ inputRow model =
 
 sideColumn model =
     Element.column
-        [ width fill
+        [ width
+            (fill
+                |> maximum 300
+            )
         , spacing 20
+        , centerX
         ]
-        [ numTextBox model "Side A" SideAChanged
-        , numTextBox model "Side B" SideBChanged
-        , numTextBox model "Side C" SideCChanged
+        [ positivefloatTextBox model "Side A" (Tuple.second model.sideA) SideAChanged
+        , positivefloatTextBox model "Side B" (Tuple.second model.sideB) SideBChanged
+        , positivefloatTextBox model "Side C" (Tuple.second model.sideC) SideCChanged
         ]
 
 
 angleColumn model =
     Element.column
-        [ width fill
+        [ width
+            (fill
+                |> maximum 300
+            )
         , spacing 20
+        , centerX
         ]
-        [ numTextBox model "Angle A" AngleAChanged
-        , numTextBox model "Angle B" AngleBChanged
-        , numTextBox model "Angle C" AngleCChanged
+        [ positivefloatTextBox model "Angle A" (Tuple.second model.angleA) AngleAChanged
+        , positivefloatTextBox model "Angle B" (Tuple.second model.angleB) AngleBChanged
+        , positivefloatTextBox model "Angle C" (Tuple.second model.angleC) AngleCChanged
         ]
 
 
-numTextBox model label msg =
+positivefloatTextBox model label numInputContent msg =
     Input.text []
-        { text = Tuple.second model.sideA
+        { text = numInputContent
         , label = Input.labelAbove [] (text label)
         , placeholder = Just (Input.placeholder [] (text "0.00"))
         , onChange = \new -> msg new
+        }
+
+
+title =
+    Element.el [ centerX, Font.size 30, padding 5 ] (text "Right Triangle: Simple Trig")
+
+
+triangle =
+    Element.image
+        [ centerX ]
+        { src = "/src/Images/Triangle.png"
+        , description = "Right Triangle"
         }
