@@ -15,11 +15,21 @@ main =
 
 
 type Msg
-    = NumTxtBoxChanged String
+    = SideAChanged String
+    | SideBChanged String
+    | AngleAChanged String
+    | SideCChanged String
+    | AngleBChanged String
+    | AngleCChanged String
 
 
 type alias Model =
-    { numTxtBoxValue : ( Float, String )
+    { sideA : ( Float, String )
+    , sideB : ( Float, String )
+    , sideC : ( Float, String )
+    , angleA : ( Float, String )
+    , angleB : ( Float, String )
+    , angleC : ( Float, String )
     }
 
 
@@ -34,12 +44,33 @@ removeLastChar str =
 
 
 init =
-    { numTxtBoxValue = ( 0, "" ) }
+    { sideA = ( 0, "" )
+    , sideB = ( 0, "" )
+    , sideC = ( 0, "" )
+    , angleA = ( 0, "" )
+    , angleB = ( 0, "" )
+    , angleC = ( 0, "" )
+    }
 
 
 update msg model =
     case msg of
-        NumTxtBoxChanged str ->
+        SideAChanged str ->
+            processNumTextboxChange model str
+
+        SideBChanged str ->
+            processNumTextboxChange model str
+
+        SideCChanged str ->
+            processNumTextboxChange model str
+
+        AngleAChanged str ->
+            processNumTextboxChange model str
+
+        AngleBChanged str ->
+            processNumTextboxChange model str
+
+        AngleCChanged str ->
             processNumTextboxChange model str
 
 
@@ -52,10 +83,10 @@ processNumTextboxChange model str =
                     thisModel
 
                 Just val ->
-                    { thisModel | numTxtBoxValue = ( val, str ) }
+                    { thisModel | sideA = ( val, str ) }
     in
     if str == "" then
-        { model | numTxtBoxValue = ( 0, "" ) }
+        { model | sideA = ( 0, "" ) }
 
     else if getLastChar str == "." then
         ifNumber (removeLastChar str) model
@@ -80,25 +111,31 @@ inputRow model =
 
 
 sideColumn model =
-    Element.column [ width fill ]
-        [ numTextBox model "Side A" NumTxtBoxChanged
-        , numTextBox model "Side B" NumTxtBoxChanged
-        , numTextBox model "Side C" NumTxtBoxChanged
+    Element.column
+        [ width fill
+        , spacing 20
+        ]
+        [ numTextBox model "Side A" SideAChanged
+        , numTextBox model "Side B" SideBChanged
+        , numTextBox model "Side C" SideCChanged
         ]
 
 
 angleColumn model =
-    Element.column [ width fill ]
-        [ numTextBox model "Angle A" NumTxtBoxChanged
-        , numTextBox model "Angle B" NumTxtBoxChanged
-        , numTextBox model "Angle C" NumTxtBoxChanged
+    Element.column
+        [ width fill
+        , spacing 20
+        ]
+        [ numTextBox model "Angle A" AngleAChanged
+        , numTextBox model "Angle B" AngleBChanged
+        , numTextBox model "Angle C" AngleCChanged
         ]
 
 
 numTextBox model label msg =
     Input.text []
-        { text = Tuple.second model.numTxtBoxValue
+        { text = Tuple.second model.sideA
         , label = Input.labelAbove [] (text label)
-        , placeholder = Just (Input.placeholder [] (text label))
+        , placeholder = Just (Input.placeholder [] (text "0.00"))
         , onChange = \new -> msg new
         }
