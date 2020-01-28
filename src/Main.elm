@@ -112,7 +112,37 @@ update msg model =
                     model
 
                 Just inputContent ->
-                    { model | angleA = inputContent }
+                    --It's a number
+                    if Tuple.first inputContent <= (180 - 90) then
+                        --It's in range
+                        let
+                            degreeA =
+                                Tuple.first inputContent
+
+                            degreeB =
+                                180 - degreeA
+
+                            angleB =
+                                ( degreeB, String.fromFloat degreeB )
+
+                            sideA =
+                                Tuple.first model.sideA
+                        in
+                        if sideA /= 0 then
+                            let
+                                sideC =
+                                    sideA / sin degreeA
+
+                                sideB =
+                                    sideA / tan degreeA
+                            in
+                            { model | angleA = inputContent, angleB = angleB, sideB = ( sideB, String.fromFloat sideB ), sideC = ( sideC, String.fromFloat sideC ) }
+
+                        else
+                            { model | angleA = inputContent, angleB = angleB }
+
+                    else
+                        model
 
         AngleBChanged str ->
             case createNumInputContent str of
@@ -120,7 +150,21 @@ update msg model =
                     model
 
                 Just inputContent ->
-                    { model | angleB = inputContent }
+                    if Tuple.first inputContent <= (180 - 90) then
+                        let
+                            degreeA =
+                                180 - degreeB
+
+                            degreeB =
+                                Tuple.first inputContent
+
+                            angleA =
+                                ( degreeA, String.fromFloat degreeA )
+                        in
+                        { model | angleB = inputContent, angleA = angleA }
+
+                    else
+                        model
 
         AngleCChanged str ->
             model
@@ -173,9 +217,9 @@ sideColumn model =
         , spacing 20
         , centerX
         ]
-        [ positivefloatTextBox model "Side A" (Tuple.second model.sideA) SideAChanged
-        , positivefloatTextBox model "Side B" (Tuple.second model.sideB) SideBChanged
-        , positivefloatTextBox model "Side C" (Tuple.second model.sideC) SideCChanged
+        [ positivefloatTextBox model "Side a" (Tuple.second model.sideA) SideAChanged
+        , positivefloatTextBox model "Side b" (Tuple.second model.sideB) SideBChanged
+        , positivefloatTextBox model "Side c" (Tuple.second model.sideC) SideCChanged
         ]
 
 
